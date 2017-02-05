@@ -55,21 +55,20 @@ var locations = [
 var locationModel = function(data){
 	var self = this;
 	self.show = ko.observable(true);
-	self.id = data.id;
-	self.chance = data.chance;
-	self.location = data.location;
 	self.title = data.title;
 };
 
 
 //viewmodel function will append to the knockout model in html
-var ViewModel = function(){
+var viewModel = function(){
 					var self = this;
 					self.search = ko.observable('');
-					self.locationList = ko.observableArray();//Locationlist array is defined to hold the 
+					self.locationList = ko.observableArray();//Locationlist array is defined to hold the data from locations object
+					self.oldlocationList = ko.observableArray();
 					for (var i = 0 ; i < locations.length; i++) {//iterating through the locations object
 						var loc = new locationModel(locations[i]);
 						self.locationList.push(loc);//adding the locations in filteredLocations array
+						self.oldlocationList.push(loc);
 					}
 					
 					self.filterSearch = ko.computed(function(){
@@ -89,6 +88,7 @@ var ViewModel = function(){
 					});
 };
 
+
 //Creating a new google map object
 //Customizing the feature 
 var map;
@@ -100,10 +100,10 @@ function mapFeature() {
 		mapTypeControl: false
 	});
 	
-	locations.forEach(function(loc){
-		var markerPosition = loc.location;
-		var markerTitle = loc.title;
-		var markerChance = loc.chance;
+	for(var i=0; i < viewModelobj.locationList().length; i++){
+		var markerPosition = viewModelobj.locationList()[i].location;
+		var markerTitle = viewModelobj.locationList()[i].title;
+		var markerChance = viewModelobj.locationList()[i].chance;
 		
 		marker = new google.maps.Marker({
 		map: map,
@@ -111,9 +111,28 @@ function mapFeature() {
 		title: markerTitle,
 		chance: markerChance,
 		animation: google.maps.Animation.DROP
-	});
-})
+		});
+	}
 }
 
-var viewmodel = new ViewModel();
-ko.applyBindings(viewmodel);
+function markerAction(marker){
+	
+}
+
+//reference:- https://developers.google.com/maps/documentation/javascript/markers
+function markerToggler(initial){
+	var image = {
+	  url: 'images/' + initial + '.png',
+	  size: new google.maps.Size(71, 71),
+	  origin: new google.maps.Point(0, 0),
+	  anchor: new google.maps.Point(17, 34),
+	  scaledSize: new google.maps.Size(25, 25)
+};
+}
+
+function populateInfoWindow(marker){
+	
+}
+
+var viewModelobj = new viewModel();
+ko.applyBindings(viewModelobj);
