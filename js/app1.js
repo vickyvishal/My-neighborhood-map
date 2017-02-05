@@ -66,26 +66,30 @@ var locationModel = function(data){
 var ViewModel = function(){
 					var self = this;
 					self.search = ko.observable('');
-					self.updatedList = ko.observableArray();
 					self.locationList = ko.observableArray();//Locationlist array is defined to hold the data from locations object
+					self.oldlocationList = ko.observableArray();
+					for (var i = 0 ; i < locations.length; i++) {//iterating through the locations object
+						var loc = new locationModel(locations[i]);
+						self.locationList.push(loc);//adding the locations in filteredLocations array
+						self.oldlocationList.push(loc);
+					}
 					
-					locations.forEach(function(loc){
-						self.locationList.push(new locationModel(loc));
-					});
 					self.filterSearch = ko.computed(function(){
-						self.updatedList.removeAll();
 						var userInput = self.search();//this will hold the user input
-						for(var i = 0; i < self.locationList().length; i++ ){
-								if(self.locationList()[i].title.toLowerCase().indexOf(userInput) > -1){
+						if(self.search()!=''){
+							for(var i=0; i<self.locationList().length; i++) {
+								if(self.locationList()[i].title.toLowerCase().indexOf(userInput.toLowerCase()) > -1){ //if the iterated locationlist element matches to the user input
 									self.locationList()[i].show(true);
-								}else{
+									console.log('In there');
+								}
+								else{
+									console.log('Not in there');
 									self.locationList()[i].show(false);
 								}
-							};
+							}
+						}
 					});
-					
 };
-
 
 //Creating a new google map object
 //Customizing the feature 
