@@ -66,12 +66,10 @@ var locationModel = function(data){
 var ViewModel = function(){
 					var self = this;
 					self.search = ko.observable('');
-					self.locationList = ko.observableArray();//Locationlist array is defined to hold the data from locations object
-					self.oldlocationList = ko.observableArray();
+					self.locationList = ko.observableArray();//Locationlist array is defined to hold the 
 					for (var i = 0 ; i < locations.length; i++) {//iterating through the locations object
 						var loc = new locationModel(locations[i]);
 						self.locationList.push(loc);//adding the locations in filteredLocations array
-						self.oldlocationList.push(loc);
 					}
 					
 					self.filterSearch = ko.computed(function(){
