@@ -1,0 +1,12 @@
+.title{
+	background-color: #02b3e4;
+}
+
+.col-md-3{
+	background-color: gray;
+}
+
+#map {
+    height: 100vh;
+    bottom: 0px;
+}
