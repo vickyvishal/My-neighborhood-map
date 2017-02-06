@@ -1,12 +1,26 @@
 .title{
-	background-color: #02b3e4;
+	background-color: blue;
+	color: white;
 }
 
 .col-md-3{
-	background-color: gray;
+	background-color: black;
 }
 
 #map {
     height: 100vh;
     bottom: 0px;
+}
+
+body{
+	background-color: white;
+}
+
+.error{
+	color: white;
+}
+
+#apiImage{
+	width: 100px;
+	height: 100px;
 }
