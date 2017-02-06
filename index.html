@@ -8,19 +8,25 @@
 	<body>
 		<div class="container">
 			<div class="row">
-				<div class="col-md-3">
+				<div class="col-md-3 text-center">
 					<div class="title">
 						<img src="images/icon.png" style="height:32px; width:32px; margin: auto" alt="pokemonGo icon"/>
-						<h3 style="float: right; margin: auto">Gotta Catch'em all</h3>
+						<h3>Gotta Catch'em all</h3>
 					</div>
-					<div id="entry" class="row">
-						<span class="glyphicon glyphicon-search"></span>
+					<div id="entry" class="row text-center">
 						<input class="search-field" id="searchbox" type="text" placeholder="What are you searching for?" data-bind= "textInput: search"> 
 					</div>
 					<div class="content list-group">
-						<ul data-bind="foreach: locationList">
-							<li class="list-group-item" data-bind="text: title, visible: show"></li>
+						<ul data-bind="foreach: locationList" style="padding: 0px">
+							<li class="list-group-item text-center" data-bind="text: title, click: $parent.listClick, visible: show"></li>
 						</ul>
+					</div>
+					<div class ="error">
+						<h4>Error Description</h4>
+						<hr>
+						<h5 data-bind="html: mapDetails"></h5>
+						<h5 data-bind="html: apiDetails"></h5>
+						<hr>
 					</div>
 				</div>
 				<div class="col-md-9">
@@ -29,21 +35,11 @@
 			</div>
 		</div>
 		<script src="https://www.gstatic.com/firebasejs/3.6.8/firebase.js"></script>
-		<script>
-		  // Initialize Firebase
-		  var config = {
-			apiKey: "AIzaSyBBY6zGG8zxO2JZDc4gr_tqKcBznyUy3cs",
-			authDomain: "my-neighbor-hood-map.firebaseapp.com",
-			databaseURL: "https://my-neighbor-hood-map.firebaseio.com",
-			storageBucket: "my-neighbor-hood-map.appspot.com",
-			messagingSenderId: "817768982131"
-		  };
-		  firebase.initializeApp(config);
-		</script>
-		<script src="js/app1.js"></script>
+	
+		<script src="js/app.js"></script>
 		<script src="js/knockout-3.4.1.js"></script>
 		<script src="https://code.jquery.com/jquery.min.js"></script>
 		<script async defer
-		src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyDkQD6EFoSl3IMVJBKlZ93PmHdHmgQEv7U&v=3&callback=mapFeature"></script>
+		src="https://maps.googleapis.com/maps/api/js?libraries=places,geometry,drawing&key=AIzaSyDkQD6EFoSl3IMVJBKlZ93PmHdHmgQEv7U&v=3&callback=mapFeature" onerror="mapError()"></script>
 	</body>
 </html>
