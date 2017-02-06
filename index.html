@@ -22,11 +22,13 @@
 						</ul>
 					</div>
 					<div class ="error">
-						<h4>Error Description</h4>
+						<h4>Description</h4>
 						<hr>
 						<h5 data-bind="html: mapDetails"></h5>
 						<h5 data-bind="html: apiDetails"></h5>
 						<hr>
+						<h4 data-bind="html: placeTips"></h4>
+						<img id="apiImage" data-bind="attr:{src: apiImage}" alt="foursquare Images"/>  
 					</div>
 				</div>
 				<div class="col-md-9">
@@ -36,7 +38,7 @@
 		</div>
 		<script src="https://www.gstatic.com/firebasejs/3.6.8/firebase.js"></script>
 	
-		<script src="js/app1.js"></script>
+		<script src="js/app.js"></script>
 		<script src="js/knockout-3.4.1.js"></script>
 		<script src="https://code.jquery.com/jquery.min.js"></script>
 		<script async defer
