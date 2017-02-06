@@ -55,6 +55,14 @@ var locations = [
 			},
 		chance:["7 pokemon/hour"],
 		id: '4da83a046e81162ae7a20113',
+	},{
+		title: 'Graphite India',
+		location:{
+			lat: 12.979763,
+			lng: 77.710285
+			},
+		chance:["9 pokemon/hour"],
+		id: '5231c49311d26dde3cad36c5',
 	}
 ];
 /* 
@@ -229,20 +237,27 @@ function populateInfoWindow(selectedMarker, selectedInfoWindow){
 						var venuename = data.response.venue.name;
 						var formattedAddress = data.response.venue.location.formattedAddress;
 						var formattedCheckin = data.response.venue.stats.checkinsCount;
-						var formattedPrefix = data.response.venue.photos.groups[0].items[0].prefix;
-						var formattedSuffix = data.response.venue.photos.groups[0].items[0].suffix;
+						var formattedPrefix = data.response.venue.photos.groups[0].items[0].prefix;//by studying the venue response file arrangment directory
+						var formattedSuffix = data.response.venue.photos.groups[0].items[0].suffix;//https://developer.foursquare.com/docs/explore#req=venues/40a55d80f964a52020f31ee3
 						var formattedSize = data.response.venue.photos.groups[0].items[0].width;
 						picUrl = formattedPrefix +'width'+ formattedSize +formattedSuffix;
 						formattedTips = data.response.venue.tips.groups[0].items[0].text;
 						console.log(formattedTips);
 						selectedInfoWindow.open(map, selectedMarker);
+						if(formattedAddress == null){viewModelobj.apiDetails("Address not available for this particular location");}
+						if(formattedCheckin ==null){viewModelobj.apiDetails("Check-in not available for this particular location");}
+						if(formattedPrefix == null){viewModelobj.apiDetails("Photos not available for this particular location");}
+						if(formattedSuffix == null){viewModelobj.apiDetails("Photos not available for this particular location");}
+						if(formattedSize == null){viewModelobj.apiDetails("Photos not available for this particular location");}
+						if(venuename == null){viewModelobj.apiDetails("Couldn't recognize this place");}
+						if(formattedTips == null){viewModelobj.apiDetails("No user Tips for this particular location");}
 						selectedInfoWindow.setContent('<div>'+ venuename + '<br>'+ formattedAddress + '<br>' + '<em>' + selectedMarker.chance + '</em>' +'<br>' + '<h6> Commuters </h6>'+ formattedCheckin + '</div>' + '<div>'+ '<img src="">' +'</div>');
 						if (!data.response) {
-								data.response = 'Foursquare do not have any data. Be the first Explorer!';
+								data.response = 'Foursquare do not have any data. Check the Id and Key!';
 						}
 				},
 				error: function () {
-    				viewModelobj.apiDetails("<The map couldn't be loaded. Try after some time");
+    				viewModelobj.apiDetails("Some Issue with Foursquare API");
     			}
 				
 		});
