@@ -1,4 +1,4 @@
-# My neighborhood map.
+# My-neighborhood-map
 
 ##Overview
 
@@ -17,8 +17,14 @@
 4. Should be responsive.
 
 ##Viewing the page
-1. Download the zip format and double click on mainapp.html to open it in your browser
-2. Clone it using gitbash and double click on mainapp.html to open it in your browser
+1. Download XAMPP from this link [XAMPP for Windows10] (https://www.apachefriends.org/xampp-files/5.6.30/xampp-win32-5.6.30-0-VC11-installer.exe)
+2. Once completed with instalation browse http://localhost/ this in your browser to access the XAMPP dashboard
+3. You will see Apache web server and mange server
+4. Select Apache web server and click start button
+5. Look for htdocs folder in XAMPP directory
+6. Download the zip file or clone it using git bash to htdocs folder
+7. Open up a text editor and create a new php file. Place this file inside htdocs
+8. Now load up http://localhost/info.php
 
 ##Pokemon Go in Bangalore Traffic
 1. Responsive page using Twitter's Bootstrap
