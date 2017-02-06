@@ -1,10 +1,11 @@
 /*Api request is loaded Asynchronously */
 /*
-Code consist of 6 functions and designed as per Neighborhood Map rubrics criteria
+Code consist of 8 functions and designed as per Neighborhood Map rubrics criteria
+The variable is named as relevent as possible
 */
 
-//My location object contains location information: latitude and longitude, title, pokemon chances and an id for third party api use
-//This will be used to locate the place 
+/*locations object contains location information: latitude and longitude, title, pokemon chances and a foursquare ID found from https://foursquare.com
+This will be used to locate the place */
 var locations = [
 	{
 		title: 'Marathalli Bridge',
@@ -39,13 +40,13 @@ var locations = [
 		chance:["20 pokemon/hour"],
 		id: '51a6cb05498ec49099258ed2',
 	},{
-		title: 'Graphite India traffic jam',
+		title: 'Sony Center World',
 		location:{
-			lat: 12.979771,
-			lng: 77.710304
+			lat: 12.970296,
+			lng: 77.641263
 			},
 		chance:["12 pokemon/hour"],
-		id: '5231c49311d26dde3cad36c5',
+		id: '4c790216df08a1cdab20d95d',
 	},{
 		title: 'Domlur',
 		location:{
@@ -55,12 +56,24 @@ var locations = [
 		chance:["7 pokemon/hour"],
 		id: '4da83a046e81162ae7a20113',
 	}
-]
-
+];
+/* 
+To handle the mapError
+Reference:- http://www.w3schools.com/jsref/event_onerror.asp
+*/
 function mapError(){
-	viewModelobj.mapDetails("<em>The map couldn't be loaded. Try after some time</em>");
+	viewModelobj.mapDetails("The map couldn't be loaded. Try after some time");
 }
-
+/*
+To handle the keyError
+Reference: https://discussions.udacity.com/t/how-to-test-for-a-google-maps-error/183447/10
+*/
+function gm_authFailure() {
+	viewModelobj.mapDetails("Check google API keys!");
+}
+/*
+Location model class 
+*/
 var locationModel = function(data){
 	var self = this;
 	self.show = ko.observable(true);
@@ -83,6 +96,8 @@ var viewModel = function(){
 	self.locationList = ko.observableArray();
 	self.mapDetails = ko.observable();
 	self.apiDetails = ko.observable();
+	self.apiImage = ko.observable();
+	self.placeTips = ko.observable();
 	for (var i = 0 ; i < locations.length; i++) {
 		var loc = new locationModel(locations[i]);
 		self.locationList.push(loc);
@@ -96,13 +111,14 @@ var viewModel = function(){
 				self.locationList()[i].markerModel.setVisible(true);
 				}
 			}else{
-				self.locationList()[i].show(false);//else don't show
+				self.locationList()[i].show(false);
 				if (self.locationList()[i].marker) {
 				self.locationList()[i].markerModel.setVisible(false);
 				}
 			}
 		}
 	});
+		//reference:-https://developers.google.com/maps/documentation/javascript/events
 		self.listClick = function(locations) {
 		google.maps.event.trigger(locations.markerModel, 'click');
 	};
@@ -110,13 +126,18 @@ var viewModel = function(){
 };
 //Creating a new google map object
 //Customizing the feature 
-
+/*
+1)Initialization of the map and markers
+*/
+var infoWindow;
+var map ;
 var mapFeature = function() {
-	var map = new google.maps.Map(document.getElementById('map'), {
+		map = new google.maps.Map(document.getElementById('map'), {
 		center: {lat: 12.959368, lng: 77.701168},
 		zoom: 12,
 		mapTypeControl: false
 	});
+	infoWindow = new google.maps.InfoWindow();
 	
 	for(var i=0; i < viewModelobj.locationList().length; i++){
 		var markerPosition = viewModelobj.locationList()[i].location;
@@ -140,23 +161,21 @@ var mapFeature = function() {
 		viewModelobj.locationList()[i].markerModel = marker;
 		markerAction(marker);
 		
-}
-}
+	}
+};
 /* 
-This function controls the marker animation
-It acts on current marker 
+1)This function controls the marker and infoWindow animation
  */
-var infoWindow;//It is declared outside 
+
 function markerAction(marker){
-	infoWindow = new google.maps.InfoWindow();
 	marker.addListener('click', function(){
 		var currentMarker = this;
 		currentMarker.setAnimation(google.maps.Animation.BOUNCE);
 		setTimeout(function() {
 			currentMarker.setAnimation(null);
-		}, 2000);
-		populateInfoWindow(this, infoWindow)
-	})
+		}, 1000);
+		populateInfoWindow(this, infoWindow);
+	});
 	marker.addListener('mouseover', function(){
 		this.setIcon(this.afterIcon);
 	});
@@ -166,8 +185,11 @@ function markerAction(marker){
 }
 
 //reference:- https://developers.google.com/maps/documentation/javascript/markers
+/*
+This function toggles the marker icon on mouse events
+*/
 function markerToggler(toggle){
-	var markerImage = new google.maps.MarkerImage(	'images/' + toggle + '.png',
+	var markerImage = new google.maps.MarkerImage('images/' + toggle + '.png',
         new google.maps.Size(64, 64),
         new google.maps.Point(0, 0),
         new google.maps.Point(32, 64),
@@ -175,6 +197,12 @@ function markerToggler(toggle){
         return markerImage;
 }
 
+var formattedTips;
+var picUrl;
+/*
+1)This function adds information to infoWindow
+2)It uses Foursquare Api's venue, image, tips information to render in infowwindow and DOM.
+*/
 function populateInfoWindow(selectedMarker, selectedInfoWindow){
 	if (selectedInfoWindow.selectedMarker != selectedMarker) {
 			selectedInfoWindow.setContent('');
@@ -187,7 +215,10 @@ function populateInfoWindow(selectedMarker, selectedInfoWindow){
 		var CLIENT_SECRET_Foursquare = '&client_secret=K2Z1IEBIK1NDQMHSJFZQ0NVPHRJBA2TB5ZKZU5XQWV2CQP43';
 		
 		/*reference: foursquare for developers
-		https://developer.foursquare.com/ */
+		https://developer.foursquare.com/ 
+		Multiple information from API, reference:- https://discussions.udacity.com/t/filter-search-logic-help/216329/3
+		https://developer.foursquare.com/docs/explore#req=venues/5231c49311d26dde3cad36c5
+		*/
 		$.ajax({
 				type: "GET",
 				dataType: 'json',
@@ -197,21 +228,33 @@ function populateInfoWindow(selectedMarker, selectedInfoWindow){
 				success: function(data) {
 						var venuename = data.response.venue.name;
 						var formattedAddress = data.response.venue.location.formattedAddress;
+						var formattedCheckin = data.response.venue.stats.checkinsCount;
+						var formattedPrefix = data.response.venue.photos.groups[0].items[0].prefix;
+						var formattedSuffix = data.response.venue.photos.groups[0].items[0].suffix;
+						var formattedSize = data.response.venue.photos.groups[0].items[0].width;
+						picUrl = formattedPrefix +'width'+ formattedSize +formattedSuffix;
+						formattedTips = data.response.venue.tips.groups[0].items[0].text;
+						console.log(formattedTips);
 						selectedInfoWindow.open(map, selectedMarker);
-						selectedInfoWindow.setContent('<div>'+ venuename + '<br>'+ formattedAddress + '<br>' + selectedMarker.chance +'</div>');
+						selectedInfoWindow.setContent('<div>'+ venuename + '<br>'+ formattedAddress + '<br>' + '<em>' + selectedMarker.chance + '</em>' +'<br>' + '<h6> Commuters </h6>'+ formattedCheckin + '</div>' + '<div>'+ '<img src="">' +'</div>');
 						if (!data.response) {
-								data.response = 'No rating in foursquare';
+								data.response = 'Foursquare do not have any data. Be the first Explorer!';
 						}
 				},
 				error: function () {
-    				viewModelobj.apiDetails("<em>The map couldn't be loaded. Try after some time</em>");
+    				viewModelobj.apiDetails("<The map couldn't be loaded. Try after some time");
     			}
-		})
+				
+		});
 		
-		viewModelobj.apiDetails("welcome to Api");
-        }
+		viewModelobj.apiDetails("Welcome to Fousquare");
+		viewModelobj.placeTips(formattedTips);
+		viewModelobj.apiImage(picUrl);
+    }
 }
-
+/*
+A new instance of viewModel is made
+The instance is binded to the DOM
+*/
 var viewModelobj = new viewModel();
 ko.applyBindings(viewModelobj);
-
