@@ -2,6 +2,7 @@
 /*
 Code consist of 8 functions and designed as per Neighborhood Map rubrics criteria
 The variable is named as relevent as possible
+My questions in discussion forum:- https://discussions.udacity.com/t/filter-search-logic-help/216329/6 , https://discussions.udacity.com/t/how-to-test-for-a-google-maps-error/183447/12
 */
 
 /*locations object contains location information: latitude and longitude, title, pokemon chances and a foursquare ID found from https://foursquare.com
@@ -76,7 +77,7 @@ function mapError(){
 To handle the keyError
 Reference: https://discussions.udacity.com/t/how-to-test-for-a-google-maps-error/183447/10
 */
-function gm_authFailure() {
+function gm_authFailure(){
 	viewModelobj.mapDetails("Check google API keys!");
 }
 /*
@@ -97,6 +98,7 @@ var locationModel = function(data){
 1)A instance viewModel function will append to the knockout model in html
 2)A instance of locationModel is used to populate locationList array
 3)It will search and filter out list and marker by toggling the show property
+4)Reference for marker visibility toggle:- http://stackoverflow.com/questions/3647711/what-is-the-difference-between-marker-setvisiblefalse-and-marker-setmapnul
 */
 var viewModel = function(){
 	var self = this;
@@ -106,7 +108,8 @@ var viewModel = function(){
 	self.apiDetails = ko.observable();
 	self.apiImage = ko.observable();
 	self.placeTips = ko.observable();
-	for (var i = 0 ; i < locations.length; i++) {
+	self.noApi = ko.observable();
+	for (var i = 0 ; i < locations.length; i++){
 		var loc = new locationModel(locations[i]);
 		self.locationList.push(loc);
 	}
@@ -115,19 +118,19 @@ var viewModel = function(){
 		for (var i = 0; i < self.locationList().length; i++){
 			if(self.locationList()[i].title.toLowerCase().indexOf(userInput) > -1){
 				self.locationList()[i].show(true);
-				if (self.locationList()[i].marker) {
+				if (self.locationList()[i].markerModel){
 				self.locationList()[i].markerModel.setVisible(true);
 				}
 			}else{
 				self.locationList()[i].show(false);
-				if (self.locationList()[i].marker) {
+				if (self.locationList()[i].markerModel){
 				self.locationList()[i].markerModel.setVisible(false);
 				}
 			}
 		}
 	});
 		//reference:-https://developers.google.com/maps/documentation/javascript/events
-		self.listClick = function(locations) {
+		self.listClick = function(locations){
 		google.maps.event.trigger(locations.markerModel, 'click');
 	};
 
@@ -140,7 +143,7 @@ var viewModel = function(){
 var infoWindow;
 var map ;
 var mapFeature = function() {
-		map = new google.maps.Map(document.getElementById('map'), {
+		map = new google.maps.Map(document.getElementById('map'),{
 		center: {lat: 12.959368, lng: 77.701168},
 		zoom: 12,
 		mapTypeControl: false
@@ -179,7 +182,7 @@ function markerAction(marker){
 	marker.addListener('click', function(){
 		var currentMarker = this;
 		currentMarker.setAnimation(google.maps.Animation.BOUNCE);
-		setTimeout(function() {
+		setTimeout(function(){
 			currentMarker.setAnimation(null);
 		}, 1000);
 		populateInfoWindow(this, infoWindow);
@@ -205,18 +208,22 @@ function markerToggler(toggle){
         return markerImage;
 }
 
-var formattedTips;
+var successTips;
 var picUrl;
 /*
 1)This function adds information to infoWindow
 2)It uses Foursquare Api's venue, image, tips information to render in infowwindow and DOM.
 */
 function populateInfoWindow(selectedMarker, selectedInfoWindow){
-	if (selectedInfoWindow.selectedMarker != selectedMarker) {
-			selectedInfoWindow.setContent('');
+	if (selectedInfoWindow.selectedMarker != selectedMarker){
+			selectedInfoWindow.setContent('loading');
 			selectedInfoWindow.selectedMarker = selectedMarker;
-			selectedInfoWindow.addListener('closeclick', function() {
+			selectedInfoWindow.addListener('closeclick', function(){
 				selectedInfoWindow.selectedMarker = null;
+				setTimeout(function(){
+				selectedInfoWindow.selectedMarker.close();
+				console.log('here');
+			}, 2000);
 			});
           
         var CLIENT_ID_Foursquare = '?client_id=AOGD2RDYRJC2QBFLUDJVE5IH00KRS1PVVGOARUQZUSF5OVIM';
@@ -233,38 +240,36 @@ function populateInfoWindow(selectedMarker, selectedInfoWindow){
 				cache: false,
 				url: 'https://api.foursquare.com/v2/venues/' + selectedMarker.id + CLIENT_ID_Foursquare + CLIENT_SECRET_Foursquare + '&v=20170115',
 				async: true,
-				success: function(data) {
+				success: function(data){
 						var venuename = data.response.venue.name;
 						var formattedAddress = data.response.venue.location.formattedAddress;
+						var address = formattedAddress.length > 0 ? formattedAddress : "Address not available for this particular location";
 						var formattedCheckin = data.response.venue.stats.checkinsCount;
-						var formattedPrefix = data.response.venue.photos.groups[0].items[0].prefix;//by studying the venue response file arrangment directory
-						var formattedSuffix = data.response.venue.photos.groups[0].items[0].suffix;//https://developer.foursquare.com/docs/explore#req=venues/40a55d80f964a52020f31ee3
-						var formattedSize = data.response.venue.photos.groups[0].items[0].width;
-						picUrl = formattedPrefix +'width'+ formattedSize +formattedSuffix;
-						formattedTips = data.response.venue.tips.groups[0].items[0].text;
+						var formattedPrefix = data.response.venue.photos.groups[0].items;//by studying the venue response file arrangment directory":- https://developer.foursquare.com/docs/explore#req=venues/
+						var prefix = data.response.venue.photos.groups[0].items[0].prefix;
+						var formattedSuffix = data.response.venue.photos.groups[0].items;
+						var suffix = data.response.venue.photos.groups[0].items[0].suffix;
+						var formattedSize = data.response.venue.photos.groups[0].items;
+						var size = data.response.venue.photos.groups[0].items[0].width;
+						picUrl = (formattedPrefix.length > 0 && formattedSuffix.length > 0 && formattedSize.length > 0) ? prefix +'width'+ size + suffix : "Photos not available for this particular location";
+						var formattedTips = data.response.venue.tips.groups[0].items;
+						successTips =  formattedTips.length > 0 ? formattedTips[0].text : "No user Tips for this particular location";
 						console.log(formattedTips);
 						selectedInfoWindow.open(map, selectedMarker);
-						if(formattedAddress == null){viewModelobj.apiDetails("Address not available for this particular location");}
-						if(formattedCheckin ==null){viewModelobj.apiDetails("Check-in not available for this particular location");}
-						if(formattedPrefix == null){viewModelobj.apiDetails("Photos not available for this particular location");}
-						if(formattedSuffix == null){viewModelobj.apiDetails("Photos not available for this particular location");}
-						if(formattedSize == null){viewModelobj.apiDetails("Photos not available for this particular location");}
-						if(venuename == null){viewModelobj.apiDetails("Couldn't recognize this place");}
-						if(formattedTips == null){viewModelobj.apiDetails("No user Tips for this particular location");}
-						selectedInfoWindow.setContent('<div>'+ venuename + '<br>'+ formattedAddress + '<br>' + '<em>' + selectedMarker.chance + '</em>' +'<br>' + '<h6> Commuters </h6>'+ formattedCheckin + '</div>' + '<div>'+ '<img src="">' +'</div>');
+						selectedInfoWindow.setContent('<div>'+ venuename + '<br>'+ address + '<br>' + '<em>' + selectedMarker.chance + '</em>' +'<br>' + '<h6> Commuters </h6>'+ formattedCheckin + '</div>');
+						viewModelobj.apiImage(picUrl);
+						viewModelobj.placeTips(successTips);
 						if (!data.response) {
 								data.response = 'Foursquare do not have any data. Check the Id and Key!';
 						}
 				},
-				error: function () {
+				error: function (){
     				viewModelobj.apiDetails("Some Issue with Foursquare API");
     			}
 				
 		});
 		
 		viewModelobj.apiDetails("Welcome to Fousquare");
-		viewModelobj.placeTips(formattedTips);
-		viewModelobj.apiImage(picUrl);
     }
 }
 /*
